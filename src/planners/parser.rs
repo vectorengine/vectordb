@@ -2,16 +2,91 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
+use sqlparser::ast::{Query, SetExpr, Statement, TableFactor};
+use sqlparser::dialect::GenericDialect;
+use sqlparser::parser::Parser;
+
+use crate::errors::{Error, SQLError};
+use crate::planners::{Planner, Source};
+
+pub fn parser_planner(sql: String) -> Result<Statement, Error> {
+    let dialect = GenericDialect {};
+
+    let mut parsed = match Parser::parse_sql(&dialect, sql) {
+        Ok(v) => v,
+        Err(e) => return Err(Error::SQL(SQLError::ParserError(e))),
+    };
+
+    let ast = match parsed.pop() {
+        Some(v) => v,
+        None => return Err(Error::SQL(SQLError::UnsupportedOperation)),
+    };
+
+    Ok(ast)
+}
+
+pub fn parser_query(query: Box<Query>) -> Result<Planner, Error> {
+    let sqlparser::ast::Query { body, .. } = *query;
+
+    let mut from = match body {
+        SetExpr::Select(select) => select.from,
+        _ => return Err(Error::SQL(SQLError::UnsupportedOperation)),
+    };
+    let table = from.pop().map(|t| t.relation);
+    let planner = get_source_planner(table)?;
+    Ok(planner)
+}
+
+pub fn get_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
+    let object_name = match relation {
+        Some(TableFactor::Table { name, .. }) => name,
+        Some(e) => {
+            return Err(Error::SQL(SQLError::NotImplemented(format!(
+                "Table: {}",
+                e
+            ))))
+        }
+        None => return Err(Error::SQL(SQLError::UnsupportedOperation)),
+    };
+
+    let table;
+    let mut schema = "";
+    if object_name.0.len() == 1 {
+        table = object_name.0.get(0).unwrap().as_str();
+    } else {
+        schema = object_name.0.get(0).unwrap().as_str();
+        table = object_name.0.get(1).unwrap().as_str();
+    }
+
+    Ok(Planner::SourcePlanner(Box::new(Source::new(
+        schema.to_string(),
+        table.to_string(),
+    ))))
+}
+
 #[test]
 fn test_select() {
-    use sqlparser::dialect::GenericDialect;
-    use sqlparser::parser::Parser;
+    {
+        let sql = "";
+        let query = parser_planner(sql.to_string());
+        assert_eq!(true, query.is_err());
+    }
 
-    let sql = "SELECT a, b, 123, funcxx(b) \
-               FROM table_1 \
-               WHERE a > b AND b < 100 \
-               ORDER BY a DESC, b";
-    let dialect = GenericDialect {};
-    let ast = Parser::parse_sql(&dialect, sql.to_string());
-    println!("SQL:{}\nAST:\n{:#?}", sql, ast.unwrap());
+    {
+        let sql = "SELECT a, b, 123, myfunc(b) \
+                   FROM table_1 \
+                   WHERE a > b AND b < 100 \
+                   ORDER BY a DESC, b";
+        let ast = parser_planner(sql.to_string());
+        assert_eq!(true, ast.is_ok());
+        print!("{:#?}", ast);
+        let query = match ast.unwrap() {
+            Statement::Query(query) => query,
+            _ => panic!(""),
+        };
+        let planner = parser_query(query);
+        assert_eq!(true, planner.is_ok());
+
+        print!("{:#?}", planner);
+    }
 }

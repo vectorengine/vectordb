@@ -2,6 +2,11 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-pub trait IPlanner {
-    fn name(&self) -> &str;
+use crate::planners::{Constant, Source, Variable};
+
+#[derive(Debug)]
+pub enum Planner {
+    VariablePlanner(Box<Variable>),
+    ConstantPlanner(Box<Constant>),
+    SourcePlanner(Box<Source>),
 }
