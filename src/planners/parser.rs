@@ -7,7 +7,8 @@ use sqlparser::dialect::GenericDialect;
 use sqlparser::parser::Parser;
 
 use crate::errors::{Error, SQLError};
-use crate::planners::{Planner, Source};
+use crate::planners::planner::Planner::MapPlanner;
+use crate::planners::{Map, Planner, Source};
 
 pub fn parser_planner(sql: String) -> Result<Statement, Error> {
     let dialect = GenericDialect {};
@@ -33,8 +34,11 @@ pub fn parser_query(query: Box<Query>) -> Result<Planner, Error> {
         _ => return Err(Error::SQL(SQLError::UnsupportedOperation)),
     };
     let table = from.pop().map(|t| t.relation);
-    let planner = get_source_planner(table)?;
-    Ok(planner)
+    let source = get_source_planner(table)?;
+
+    let mut planners = Map::new();
+    planners.planners.push(source);
+    Ok(MapPlanner(Box::new(planners)))
 }
 
 pub fn get_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
