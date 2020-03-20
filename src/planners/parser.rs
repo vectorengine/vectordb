@@ -34,14 +34,14 @@ pub fn parser_query(query: Box<Query>) -> Result<Planner, Error> {
         _ => return Err(Error::SQL(SQLError::UnsupportedOperation)),
     };
     let table = from.pop().map(|t| t.relation);
-    let source = get_source_planner(table)?;
+    let source = parse_source_planner(table)?;
 
     let mut planners = Map::new();
     planners.planners.push(source);
     Ok(MapPlanner(Box::new(planners)))
 }
 
-pub fn get_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
+pub fn parse_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
     let object_name = match relation {
         Some(TableFactor::Table { name, .. }) => name,
         Some(e) => {
@@ -53,14 +53,14 @@ pub fn get_source_planner(relation: Option<TableFactor>) -> Result<Planner, Erro
         None => return Err(Error::SQL(SQLError::UnsupportedOperation)),
     };
 
-    let table;
-    let mut schema = "";
-    if object_name.0.len() == 1 {
-        table = object_name.0.get(0).unwrap().as_str();
-    } else {
-        schema = object_name.0.get(0).unwrap().as_str();
-        table = object_name.0.get(1).unwrap().as_str();
-    }
+    let (schema, table) = match object_name.0.len() {
+        1 => ("", object_name.0.get(0).unwrap().as_str()),
+        2 => (
+            object_name.0.get(0).unwrap().as_str(),
+            object_name.0.get(1).unwrap().as_str(),
+        ),
+        _ => return Err(Error::SQL(SQLError::UnsupportedOperation)),
+    };
 
     Ok(Planner::SourcePlanner(Box::new(Source::new(
         schema.to_string(),
