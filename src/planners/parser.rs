@@ -6,9 +6,8 @@ use sqlparser::ast::{Query, SetExpr, Statement, TableFactor};
 use sqlparser::dialect::GenericDialect;
 use sqlparser::parser::Parser;
 
+use super::{Map, Planner, Planner::*, Source};
 use crate::errors::{Error, SQLError};
-use crate::planners::planner::Planner::MapPlanner;
-use crate::planners::{Map, Planner, Source};
 
 pub fn parser(sql: String) -> Result<Statement, Error> {
     let dialect = GenericDialect {};
@@ -26,10 +25,10 @@ pub fn parser(sql: String) -> Result<Statement, Error> {
     Ok(ast)
 }
 
-pub fn handle_statement(stmt:Statement) ->Result<Planner, Error>  {
+pub fn handle_statement(stmt: Statement) -> Result<Planner, Error> {
     match stmt {
         Statement::Query(query) => handle_query(*query),
-        _=> Err(Error::SQL(SQLError::UnsupportedOperation)),
+        _ => Err(Error::SQL(SQLError::UnsupportedOperation)),
     }
 }
 
@@ -41,14 +40,14 @@ pub fn handle_query(query: Query) -> Result<Planner, Error> {
         _ => return Err(Error::SQL(SQLError::UnsupportedOperation)),
     };
     let table = from.pop().map(|t| t.relation);
-    let source = parse_source_planner(table)?;
+    let source = handle_source_planner(table)?;
 
     let mut planners = Map::new();
     planners.planners.push(source);
     Ok(MapPlanner(Box::new(planners)))
 }
 
-pub fn parse_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
+pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
     let object_name = match relation {
         Some(TableFactor::Table { name, .. }) => name,
         Some(e) => {
