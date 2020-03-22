@@ -2,15 +2,15 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use crate::values::Value;
+use crate::datums::Datum;
 
 #[derive(Debug)]
 pub struct Constant {
-    pub val: Value,
+    pub val: Datum,
 }
 
 impl Constant {
-    pub fn new(t: Value) -> Self {
+    pub fn new(t: Datum) -> Self {
         Constant { val: t }
     }
 

@@ -2,6 +2,6 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-pub mod value;
+pub mod datum;
 
-pub use self::value::Value;
+pub use self::datum::Datum;
