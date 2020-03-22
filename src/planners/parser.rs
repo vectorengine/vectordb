@@ -10,7 +10,7 @@ use crate::errors::{Error, SQLError};
 use crate::planners::planner::Planner::MapPlanner;
 use crate::planners::{Map, Planner, Source};
 
-pub fn parser_planner(sql: String) -> Result<Statement, Error> {
+pub fn parser(sql: String) -> Result<Statement, Error> {
     let dialect = GenericDialect {};
 
     let mut parsed = match Parser::parse_sql(&dialect, sql) {
@@ -26,8 +26,15 @@ pub fn parser_planner(sql: String) -> Result<Statement, Error> {
     Ok(ast)
 }
 
-pub fn parser_query(query: Box<Query>) -> Result<Planner, Error> {
-    let sqlparser::ast::Query { body, .. } = *query;
+pub fn handle_statement(stmt:Statement) ->Result<Planner, Error>  {
+    match stmt {
+        Statement::Query(query) => handle_query(*query),
+        _=> Err(Error::SQL(SQLError::UnsupportedOperation)),
+    }
+}
+
+pub fn handle_query(query: Query) -> Result<Planner, Error> {
+    let sqlparser::ast::Query { body, .. } = query;
 
     let mut from = match body {
         SetExpr::Select(select) => select.from,
@@ -72,7 +79,7 @@ pub fn parse_source_planner(relation: Option<TableFactor>) -> Result<Planner, Er
 fn test_select() {
     {
         let sql = "";
-        let query = parser_planner(sql.to_string());
+        let query = parser(sql.to_string());
         assert_eq!(true, query.is_err());
     }
 
@@ -81,14 +88,10 @@ fn test_select() {
                    FROM table_1 \
                    WHERE a > b AND b < 100 \
                    ORDER BY a DESC, b";
-        let ast = parser_planner(sql.to_string());
-        assert_eq!(true, ast.is_ok());
-        print!("{:#?}", ast);
-        let query = match ast.unwrap() {
-            Statement::Query(query) => query,
-            _ => panic!(""),
-        };
-        let planner = parser_query(query);
+        let stmt = parser(sql.to_string());
+        assert_eq!(true, stmt.is_ok());
+        print!("{:#?}", stmt);
+        let planner = handle_statement(stmt.unwrap());
         assert_eq!(true, planner.is_ok());
 
         print!("{:#?}", planner);
