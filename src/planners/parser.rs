@@ -6,10 +6,12 @@ use sqlparser::ast::{Expr, Query, SetExpr, Statement, TableFactor, Value as Expr
 use sqlparser::dialect::GenericDialect;
 use sqlparser::parser::Parser;
 
-use super::{BinaryExpression, Constant, Map, Planner, Planner::*, Source, Variable};
 use crate::datums::Datum;
 use crate::errors::{Error, SQLError};
-use crate::planners::ScalarExpression;
+
+use super::{
+    BinaryExpression, Constant, Map, Planner, Planner::*, ScalarExpression, Source, Variable,
+};
 
 pub fn parser(sql: String) -> Result<Statement, Error> {
     let dialect = GenericDialect {};
@@ -150,7 +152,7 @@ pub fn expression_value_to_datum(val: &ExprValue) -> Result<Datum, Error> {
 }
 
 #[test]
-fn test_select() {
+fn test_parser() {
     {
         let sql = "";
         let query = parser(sql.to_string());

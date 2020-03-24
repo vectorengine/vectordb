@@ -18,3 +18,9 @@ impl Variable {
         "Variable"
     }
 }
+
+#[test]
+fn test_variable_planner() {
+    assert_eq!("Variable", Variable::new("").name());
+    assert_eq!("a", Variable::new("a").val);
+}
