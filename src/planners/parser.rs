@@ -2,12 +2,14 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use sqlparser::ast::{Query, SetExpr, Statement, TableFactor};
+use sqlparser::ast::{Expr, Query, SetExpr, Statement, TableFactor, Value as ExprValue};
 use sqlparser::dialect::GenericDialect;
 use sqlparser::parser::Parser;
 
-use super::{Map, Planner, Planner::*, Source};
+use super::{BinaryExpression, Constant, Map, Planner, Planner::*, Source, Variable};
+use crate::datums::Datum;
 use crate::errors::{Error, SQLError};
+use crate::planners::ScalarExpression;
 
 pub fn parser(sql: String) -> Result<Statement, Error> {
     let dialect = GenericDialect {};
@@ -35,16 +37,25 @@ pub fn handle_statement(stmt: Statement) -> Result<Planner, Error> {
 pub fn handle_query(query: Query) -> Result<Planner, Error> {
     let sqlparser::ast::Query { body, .. } = query;
 
-    let mut from = match body {
-        SetExpr::Select(select) => select.from,
+    let (mut from, selection) = match body {
+        SetExpr::Select(select) => (select.from, select.selection),
         _ => return Err(Error::SQL(SQLError::UnsupportedOperation)),
     };
+
+    // Source Planner.
     let table = from.pop().map(|t| t.relation);
     let source = handle_source_planner(table)?;
 
+    // Filter Planner.
+    let filter = match selection {
+        Some(ref expr) => handle_expression_planner(&expr)?,
+        None => NonePlanner,
+    };
+
     let mut planners = Map::new();
     planners.planners.push(source);
-    Ok(MapPlanner(Box::new(planners)))
+    planners.planners.push(filter);
+    Ok(MapPlanner(planners))
 }
 
 pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
@@ -65,13 +76,77 @@ pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, E
             object_name.0.get(0).unwrap().as_str(),
             object_name.0.get(1).unwrap().as_str(),
         ),
-        _ => return Err(Error::SQL(SQLError::UnsupportedOperation)),
+        _ => {
+            return Err(Error::SQL(SQLError::NotImplemented(format!(
+                "{:?}",
+                object_name.0
+            ))))
+        }
     };
 
-    Ok(Planner::SourcePlanner(Box::new(Source::new(
+    Ok(SourcePlanner(Source::new(
         schema.to_string(),
         table.to_string(),
-    ))))
+    )))
+}
+
+pub fn handle_expression_planner(expr: &Expr) -> Result<Planner, Error> {
+    match expr {
+        // Variable.
+        Expr::Identifier(ref identifier) => Ok(VariablePlanner(Variable::new(identifier))),
+
+        // Constant.
+        Expr::Value(ref val) => Ok(ConstantPlanner(Constant::new(expression_value_to_datum(
+            val,
+        )?))),
+
+        // Binary.
+        Expr::BinaryOp {
+            ref left,
+            ref op,
+            ref right,
+        } => {
+            let left_expression_planner = handle_expression_planner(left)?;
+            let right_expression_planner = handle_expression_planner(right)?;
+            Ok(BinaryExpressionPlanner(Box::new(BinaryExpression::new(
+                format!("{}", op),
+                left_expression_planner,
+                right_expression_planner,
+            ))))
+        }
+
+        // Function.
+        Expr::Function(func) => {
+            let mut arguments: Vec<Planner> = Vec::new();
+            for arg in &func.args {
+                let argument = handle_expression_planner(&arg)?;
+                arguments.push(argument);
+            }
+            Ok(ScalarExpressionPlanner(Box::new(ScalarExpression::new(
+                format!("{}", func.name),
+                arguments,
+            ))))
+        }
+
+        // Unsupported.
+        _ => Err(Error::SQL(SQLError::NotImplemented(format!("{:?}", expr)))),
+    }
+}
+
+pub fn expression_value_to_datum(val: &ExprValue) -> Result<Datum, Error> {
+    match val {
+        // Number.
+        ExprValue::Number(v) => {
+            let i = v.parse::<i64>().unwrap();
+            Ok(Datum::Int64(i))
+        }
+
+        // String.
+        ExprValue::SingleQuotedString(ref v) => Ok(Datum::String(v.to_string())),
+
+        // Unsupported.
+        _ => Err(Error::SQL(SQLError::NotImplemented(format!("{:?}", val)))),
+    }
 }
 
 #[test]
@@ -83,16 +158,14 @@ fn test_select() {
     }
 
     {
-        let sql = "SELECT a, b, 123, myfunc(b) \
-                   FROM table_1 \
-                   WHERE a > b AND b < 100 \
-                   ORDER BY a DESC, b";
+        let sql = "SELECT a, b FROM table_1 WHERE a > b AND b < 100 OR myfunc(a+1) = 1";
         let stmt = parser(sql.to_string());
         assert_eq!(true, stmt.is_ok());
         print!("{:#?}", stmt);
         let planner = handle_statement(stmt.unwrap());
+        print!("{:#?}", planner);
         assert_eq!(true, planner.is_ok());
 
-        print!("{:#?}", planner);
+        print!("{:#?}", planner.unwrap());
     }
 }

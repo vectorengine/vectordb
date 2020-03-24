@@ -2,12 +2,17 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use crate::planners::{Constant, Map, Source, Variable};
+use crate::planners::{BinaryExpression, Constant, Map, ScalarExpression, Source, Variable};
 
 #[derive(Debug)]
 pub enum Planner {
-    VariablePlanner(Box<Variable>),
-    ConstantPlanner(Box<Constant>),
-    SourcePlanner(Box<Source>),
-    MapPlanner(Box<Map>),
+    NonePlanner,
+    MapPlanner(Map),
+
+    VariablePlanner(Variable),
+    ConstantPlanner(Constant),
+    SourcePlanner(Source),
+
+    BinaryExpressionPlanner(Box<BinaryExpression>),
+    ScalarExpressionPlanner(Box<ScalarExpression>),
 }
