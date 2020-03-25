@@ -1,4 +1,3 @@
-#![feature(in_band_lifetimes)]
 // Copyright 2020 The VectorDB Authors.
 //
 // Code is licensed under Apache License, Version 2.0.
