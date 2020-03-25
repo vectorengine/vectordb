@@ -5,6 +5,7 @@
 pub mod binary;
 pub mod constant;
 pub mod expression;
+pub mod factory;
 pub mod variable;
 
 pub use binary::Binary;
