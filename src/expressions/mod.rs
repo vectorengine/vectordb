@@ -9,5 +9,6 @@ pub mod variable;
 
 pub use binary::Binary;
 pub use constant::Constant;
+pub use expression::Expression;
 pub use expression::IExpression;
 pub use variable::Variable;

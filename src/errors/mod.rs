@@ -12,6 +12,9 @@ pub enum Error {
 
     #[fail(display = "Expression error: `{}`", _0)]
     Expression(#[cause] ExpressionError),
+
+    #[fail(display = "Datum error: `{}`", _0)]
+    Datum(#[cause] DatumError),
 }
 
 #[derive(Debug, Fail)]
@@ -31,6 +34,12 @@ pub enum ExpressionError {
     #[fail(display = "Not implemented: {}", _0)]
     NotImplemented(String),
 
+    #[fail(display = "Unsupported operation.")]
+    UnsupportedOperation,
+}
+
+#[derive(Debug, Fail)]
+pub enum DatumError {
     #[fail(display = "Unsupported operation.")]
     UnsupportedOperation,
 }
