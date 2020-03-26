@@ -2,22 +2,10 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
+use super::Datum;
 use crate::errors::{DatumError, Error};
 
-use super::Datum;
-
-macro_rules! op {
-    ($func:ident, $op:tt, $( $y:path ),*) => (
-        pub fn $func(x: &Datum, y: &Datum) -> Result<Datum,Error> {
-            match (x, y) {
-                    $(($y(a), $y(b)) => Ok($y(a $op b)),)+
-                    _ => Err(Error::Datum(DatumError::UnsupportedOperation)),
-            }
-        }
-    )
-}
-
-op!(
+arithmetic!(
     add,
     +,
     Datum::Int32,
@@ -26,7 +14,7 @@ op!(
     Datum::Float64
 );
 
-op!(
+arithmetic!(
     sub,
     -,
     Datum::Int32,
@@ -35,7 +23,7 @@ op!(
     Datum::Float64
 );
 
-op!(
+arithmetic!(
     mul,
     *,
     Datum::Int32,
@@ -44,7 +32,7 @@ op!(
     Datum::Float64
 );
 
-op!(
+arithmetic!(
     div,
     /,
     Datum::Int32,
@@ -55,6 +43,8 @@ op!(
 
 #[test]
 fn test_arithmetic() {
+    use super::Datum;
+
     // Add.
     {
         let ref d1 = Datum::Int32(1);
