@@ -59,7 +59,7 @@ comparator!(
 fn test_comparator() {
     use tests::Test;
 
-    let tests = [
+    let mut tests = vec![
         Test {
             name: "gt-passed",
             args: vec![Datum::Int32(3), Datum::Int32(2)],
@@ -97,8 +97,8 @@ fn test_comparator() {
         },
     ];
 
-    for t in tests.iter() {
-        let d3 = (t.func.as_ref())(&t.args[0], &t.args[1]);
-        assert_eq!(t.expect, d3.unwrap());
+    while let Some(t) = tests.pop() {
+        let actual = (t.func.as_ref())(&t.args[0], &t.args[1]).unwrap();
+        assert_eq!(t.expect, actual);
     }
 }

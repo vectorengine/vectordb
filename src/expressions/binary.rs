@@ -2,7 +2,7 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use crate::datums::{arithmetic, Datum};
+use crate::datums::{arithmetic, comparator, Datum};
 use crate::errors::Error;
 
 use super::*;
@@ -66,19 +66,74 @@ pub fn div(args: Vec<Expression>) -> Expression {
     ))
 }
 
+pub fn gt(args: Vec<Expression>) -> Expression {
+    Expression::BinaryExpression(Binary::new(
+        Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
+            comparator::gt(left, right)
+        }),
+        args,
+    ))
+}
+
 #[test]
 fn test_add() {
-    let l = Expression::ConstantExpression(Constant::new(Datum::Int32(1)));
-    let r = Expression::ConstantExpression(Constant::new(Datum::Int32(3)));
-    let fn1 = add(vec![l, r]);
+    use tests::Test;
 
-    let l = Expression::ConstantExpression(Constant::new(Datum::Int32(5)));
-    let r = Expression::ConstantExpression(Constant::new(Datum::Int32(7)));
-    let fn2 = add(vec![l, r]);
+    let mut tests = vec![
+        Test {
+            name: "add-passed",
+            args: vec![
+                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
+                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+            ],
+            expect: Datum::Int32(12),
+            func: Box::new(add),
+            error: None,
+        },
+        Test {
+            name: "sub-passed",
+            args: vec![
+                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
+                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+            ],
+            expect: Datum::Int32(8),
+            func: Box::new(sub),
+            error: None,
+        },
+        Test {
+            name: "mul-passed",
+            args: vec![
+                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
+                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+            ],
+            expect: Datum::Int32(20),
+            func: Box::new(mul),
+            error: None,
+        },
+        Test {
+            name: "div-passed",
+            args: vec![
+                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
+                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+            ],
+            expect: Datum::Int32(5),
+            func: Box::new(div),
+            error: None,
+        },
+        Test {
+            name: "gt-passed",
+            args: vec![
+                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
+                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+            ],
+            expect: Datum::Boolean(true),
+            func: Box::new(gt),
+            error: None,
+        },
+    ];
 
-    let func = add(vec![fn1, fn2]);
-    let result = func.eval();
-
-    assert_eq!(true, result.is_ok());
-    assert_eq!(Datum::Int32(16), result.unwrap());
+    while let Some(t) = tests.pop() {
+        let actual = (t.func.as_ref())(t.args).eval().unwrap();
+        assert_eq!(t.expect, actual);
+    }
 }
