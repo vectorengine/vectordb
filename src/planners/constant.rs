@@ -5,26 +5,33 @@
 use crate::datums::Datum;
 
 #[derive(Debug)]
-pub struct Constant {
+pub struct ConstantPlanner {
     pub val: Datum,
 }
 
-impl Constant {
+impl ConstantPlanner {
     pub fn new(t: Datum) -> Self {
-        Constant { val: t }
+        ConstantPlanner { val: t }
     }
 
     pub fn name(&self) -> &str {
-        "Constant"
+        "ConstantPlanner"
     }
 }
 
-#[test]
-fn test_constant_planner() {
-    assert_eq!(String::from("Constant"), Constant::new(Datum::Null).name());
-    assert_eq!(
-        Datum::String(String::from("String")),
-        Constant::new(Datum::String(String::from("String"))).val
-    );
-    assert_eq!(Datum::Int32(1), Constant::new(Datum::Int32(1)).val);
+mod tests {
+    #[test]
+    fn test_constant_planner() {
+        use super::*;
+
+        assert_eq!(
+            String::from("ConstantPlanner"),
+            ConstantPlanner::new(Datum::Null).name()
+        );
+        assert_eq!(
+            Datum::String(String::from("String")),
+            ConstantPlanner::new(Datum::String(String::from("String"))).val
+        );
+        assert_eq!(Datum::Int32(1), ConstantPlanner::new(Datum::Int32(1)).val);
+    }
 }

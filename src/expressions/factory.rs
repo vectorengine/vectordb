@@ -40,11 +40,11 @@ lazy_static! {
 
 #[test]
 fn test_factory() {
-    use super::{Constant, IExpression};
+    use super::{ConstantExpression, IExpression};
     use crate::datums::Datum;
 
-    let l = Expression::from(Constant::new(Datum::Int32(1)));
-    let r = Expression::from(Constant::new(Datum::Int32(3)));
+    let l = Expression::from(ConstantExpression::new(Datum::Int32(1)));
+    let r = Expression::from(ConstantExpression::new(Datum::Int32(3)));
     let expr = factory("+", vec![l, r]).unwrap();
     let result = expr.eval();
 

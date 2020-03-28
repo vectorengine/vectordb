@@ -5,18 +5,18 @@
 use crate::planners::Planner;
 
 #[derive(Debug, Default)]
-pub struct Map {
+pub struct MapPlanner {
     pub planners: Vec<Planner>,
 }
 
-impl Map {
+impl MapPlanner {
     pub fn new() -> Self {
-        Map {
+        MapPlanner {
             planners: Vec::new(),
         }
     }
 
     pub fn name(&self) -> &str {
-        "Map"
+        "MapPlanner"
     }
 }

@@ -8,26 +8,30 @@ use crate::errors::Error;
 use super::IExpression;
 
 #[derive(Debug)]
-pub struct Constant {
+pub struct ConstantExpression {
     pub val: Datum,
 }
 
-impl Constant {
+impl ConstantExpression {
     pub fn new(val: Datum) -> Self {
-        Constant { val }
+        ConstantExpression { val }
     }
 }
 
-impl IExpression for Constant {
+impl IExpression for ConstantExpression {
     fn eval(&self) -> Result<Datum, Error> {
         Ok(self.val.clone())
     }
 }
 
-#[test]
-fn test_constant() {
-    let expr = Constant::new(Datum::Int64(64));
-    let result = expr.eval();
-    assert_eq!(true, result.is_ok());
-    assert_eq!(result.unwrap(), expr.val);
+mod tests {
+    #[test]
+    fn test_constant() {
+        use super::*;
+
+        let expr = ConstantExpression::new(Datum::Int64(64));
+        let result = expr.eval();
+        assert_eq!(true, result.is_ok());
+        assert_eq!(result.unwrap(), expr.val);
+    }
 }

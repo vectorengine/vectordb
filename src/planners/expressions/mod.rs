@@ -6,5 +6,5 @@ pub mod binary_expression;
 pub mod expression;
 pub mod scalar_expression;
 
-pub use self::binary_expression::BinaryExpression;
-pub use self::scalar_expression::ScalarExpression;
+pub use self::binary_expression::BinaryExpressionPlanner;
+pub use self::scalar_expression::ScalarExpressionPlanner;

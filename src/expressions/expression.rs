@@ -5,42 +5,42 @@
 use crate::datums::Datum;
 use crate::errors::Error;
 
-use super::{Binary, Constant, Variable};
+use super::{BinaryExpression, ConstantExpression, VariableExpression};
 
 pub trait IExpression {
     fn eval(&self) -> Result<Datum, Error>;
 }
 
 pub enum Expression {
-    ConstantExpression(Constant),
-    VariableExpression(Variable),
-    BinaryExpression(Binary),
+    Constant(ConstantExpression),
+    Variable(VariableExpression),
+    Binary(BinaryExpression),
 }
 
-impl From<Constant> for Expression {
-    fn from(v: Constant) -> Self {
-        Expression::ConstantExpression(v)
+impl From<ConstantExpression> for Expression {
+    fn from(v: ConstantExpression) -> Self {
+        Expression::Constant(v)
     }
 }
 
-impl From<Variable> for Expression {
-    fn from(v: Variable) -> Self {
-        Expression::VariableExpression(v)
+impl From<VariableExpression> for Expression {
+    fn from(v: VariableExpression) -> Self {
+        Expression::Variable(v)
     }
 }
 
-impl From<Binary> for Expression {
-    fn from(v: Binary) -> Self {
-        Expression::BinaryExpression(v)
+impl From<BinaryExpression> for Expression {
+    fn from(v: BinaryExpression) -> Self {
+        Expression::Binary(v)
     }
 }
 
 impl IExpression for Expression {
     fn eval(&self) -> Result<Datum, Error> {
         match self {
-            Expression::ConstantExpression(v) => v.eval(),
-            Expression::VariableExpression(v) => v.eval(),
-            Expression::BinaryExpression(v) => v.eval(),
+            Expression::Constant(v) => v.eval(),
+            Expression::Variable(v) => v.eval(),
+            Expression::Binary(v) => v.eval(),
         }
     }
 }

@@ -2,35 +2,50 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use crate::planners::{BinaryExpression, Constant, Map, ScalarExpression, Source, Variable};
+use crate::planners::{
+    BinaryExpressionPlanner, ConstantPlanner, MapPlanner, ScalarExpressionPlanner, SourcePlanner,
+    VariablePlanner,
+};
 
 #[derive(Debug)]
 pub enum Planner {
-    NonePlanner,
-    MapPlanner(Map),
+    Null,
+    Map(MapPlanner),
 
-    VariablePlanner(Variable),
-    ConstantPlanner(Constant),
-    SourcePlanner(Source),
+    Variable(VariablePlanner),
+    Constant(ConstantPlanner),
+    Source(SourcePlanner),
 
-    BinaryExpressionPlanner(Box<BinaryExpression>),
-    ScalarExpressionPlanner(Box<ScalarExpression>),
+    BinaryExpression(Box<BinaryExpressionPlanner>),
+    ScalarExpression(Box<ScalarExpressionPlanner>),
 }
 
-impl From<Constant> for Planner {
-    fn from(v: Constant) -> Self {
-        Planner::ConstantPlanner(v)
+impl From<ConstantPlanner> for Planner {
+    fn from(v: ConstantPlanner) -> Self {
+        Planner::Constant(v)
     }
 }
 
-impl From<Variable> for Planner {
-    fn from(v: Variable) -> Self {
-        Planner::VariablePlanner(v)
+impl From<SourcePlanner> for Planner {
+    fn from(v: SourcePlanner) -> Self {
+        Planner::Source(v)
     }
 }
 
-impl From<BinaryExpression> for Planner {
-    fn from(v: BinaryExpression) -> Self {
-        Planner::BinaryExpressionPlanner(Box::new(v))
+impl From<VariablePlanner> for Planner {
+    fn from(v: VariablePlanner) -> Self {
+        Planner::Variable(v)
+    }
+}
+
+impl From<BinaryExpressionPlanner> for Planner {
+    fn from(v: BinaryExpressionPlanner) -> Self {
+        Planner::BinaryExpression(Box::new(v))
+    }
+}
+
+impl From<ScalarExpressionPlanner> for Planner {
+    fn from(v: ScalarExpressionPlanner) -> Self {
+        Planner::ScalarExpression(Box::new(v))
     }
 }

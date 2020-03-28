@@ -10,7 +10,8 @@ use crate::datums::Datum;
 use crate::errors::{Error, SQLError};
 
 use super::{
-    BinaryExpression, Constant, Map, Planner, Planner::*, ScalarExpression, Source, Variable,
+    BinaryExpressionPlanner, ConstantPlanner, MapPlanner, Planner, Planner::*,
+    ScalarExpressionPlanner, SourcePlanner, VariablePlanner,
 };
 
 pub fn parser(sql: String) -> Result<Statement, Error> {
@@ -51,13 +52,13 @@ pub fn handle_query(query: Query) -> Result<Planner, Error> {
     // Filter Planner.
     let filter = match selection {
         Some(ref expr) => handle_expression_planner(&expr)?,
-        None => NonePlanner,
+        None => Null,
     };
 
-    let mut planners = Map::new();
+    let mut planners = MapPlanner::new();
     planners.planners.push(source);
     planners.planners.push(filter);
-    Ok(MapPlanner(planners))
+    Ok(Map(planners))
 }
 
 pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
@@ -86,7 +87,7 @@ pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, E
         }
     };
 
-    Ok(SourcePlanner(Source::new(
+    Ok(Planner::from(SourcePlanner::new(
         schema.to_string(),
         table.to_string(),
     )))
@@ -95,12 +96,12 @@ pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, E
 pub fn handle_expression_planner(expr: &Expr) -> Result<Planner, Error> {
     match expr {
         // Variable.
-        Expr::Identifier(ref identifier) => Ok(VariablePlanner(Variable::new(identifier))),
+        Expr::Identifier(ref identifier) => Ok(Planner::from(VariablePlanner::new(identifier))),
 
         // Constant.
-        Expr::Value(ref val) => Ok(ConstantPlanner(Constant::new(expression_value_to_datum(
-            val,
-        )?))),
+        Expr::Value(ref val) => Ok(Planner::from(ConstantPlanner::new(
+            expression_value_to_datum(val)?,
+        ))),
 
         // Binary.
         Expr::BinaryOp {
@@ -110,11 +111,11 @@ pub fn handle_expression_planner(expr: &Expr) -> Result<Planner, Error> {
         } => {
             let left_expression_planner = handle_expression_planner(left)?;
             let right_expression_planner = handle_expression_planner(right)?;
-            Ok(BinaryExpressionPlanner(Box::new(BinaryExpression::new(
+            Ok(Planner::from(BinaryExpressionPlanner::new(
                 format!("{}", op),
                 left_expression_planner,
                 right_expression_planner,
-            ))))
+            )))
         }
 
         // Function.
@@ -124,10 +125,10 @@ pub fn handle_expression_planner(expr: &Expr) -> Result<Planner, Error> {
                 let argument = handle_expression_planner(&arg)?;
                 arguments.push(argument);
             }
-            Ok(ScalarExpressionPlanner(Box::new(ScalarExpression::new(
+            Ok(Planner::from(ScalarExpressionPlanner::new(
                 format!("{}", func.name),
                 arguments,
-            ))))
+            )))
         }
 
         // Unsupported.

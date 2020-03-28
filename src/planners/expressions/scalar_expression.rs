@@ -5,17 +5,17 @@
 use crate::planners::Planner;
 
 #[derive(Debug)]
-pub struct ScalarExpression {
+pub struct ScalarExpressionPlanner {
     pub op: String,
     pub arguments: Vec<Planner>,
 }
 
-impl ScalarExpression {
+impl ScalarExpressionPlanner {
     pub fn new(op: String, arguments: Vec<Planner>) -> Self {
-        ScalarExpression { op, arguments }
+        ScalarExpressionPlanner { op, arguments }
     }
 
     pub fn name(&self) -> &str {
-        "FunctionExpression"
+        "ScalarExpressionPlanner"
     }
 }

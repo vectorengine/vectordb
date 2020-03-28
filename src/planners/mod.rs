@@ -11,11 +11,11 @@ pub mod map;
 pub mod source;
 pub mod variable;
 
-pub use self::constant::Constant;
-pub use self::map::Map;
+pub use self::constant::ConstantPlanner;
+pub use self::map::MapPlanner;
 pub use self::planner::Planner;
-pub use self::source::Source;
-pub use self::variable::Variable;
+pub use self::source::SourcePlanner;
+pub use self::variable::VariablePlanner;
 
-pub use expressions::binary_expression::BinaryExpression;
-pub use expressions::scalar_expression::ScalarExpression;
+pub use expressions::binary_expression::BinaryExpressionPlanner;
+pub use expressions::scalar_expression::ScalarExpressionPlanner;

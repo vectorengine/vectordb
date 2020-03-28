@@ -8,27 +8,31 @@ use crate::errors::{Error, ExpressionError};
 use super::IExpression;
 
 #[derive(Debug)]
-pub struct Variable {
+pub struct VariableExpression {
     pub val: String,
 }
 
-impl Variable {
+impl VariableExpression {
     pub fn new(v: impl AsRef<str>) -> Self {
-        Variable {
+        VariableExpression {
             val: v.as_ref().to_string(),
         }
     }
 }
 
-impl IExpression for Variable {
+impl IExpression for VariableExpression {
     fn eval(&self) -> Result<Datum, Error> {
         Err(Error::Expression(ExpressionError::UnsupportedOperation))
     }
 }
 
-#[test]
-fn test_variable() {
-    let expr = Variable::new("a");
-    let result = expr.eval();
-    assert_eq!(false, result.is_ok());
+mod tests {
+    #[test]
+    fn test_variable() {
+        use super::*;
+
+        let expr = VariableExpression::new("a");
+        let result = expr.eval();
+        assert_eq!(false, result.is_ok());
+    }
 }

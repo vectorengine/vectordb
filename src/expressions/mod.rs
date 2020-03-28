@@ -10,8 +10,8 @@ pub mod expression;
 pub mod factory;
 pub mod variable;
 
-pub use binary::Binary;
-pub use constant::Constant;
+pub use binary::BinaryExpression;
+pub use constant::ConstantExpression;
 pub use expression::Expression;
 pub use expression::IExpression;
-pub use variable::Variable;
+pub use variable::VariableExpression;
