@@ -43,8 +43,8 @@ fn test_factory() {
     use super::{Constant, IExpression};
     use crate::datums::Datum;
 
-    let l = Expression::ConstantExpression(Constant::new(Datum::Int32(1)));
-    let r = Expression::ConstantExpression(Constant::new(Datum::Int32(3)));
+    let l = Expression::from(Constant::new(Datum::Int32(1)));
+    let r = Expression::from(Constant::new(Datum::Int32(3)));
     let expr = factory("+", vec![l, r]).unwrap();
     let result = expr.eval();
 

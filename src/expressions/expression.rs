@@ -17,6 +17,24 @@ pub enum Expression {
     BinaryExpression(Binary),
 }
 
+impl From<Constant> for Expression {
+    fn from(v: Constant) -> Self {
+        Expression::ConstantExpression(v)
+    }
+}
+
+impl From<Variable> for Expression {
+    fn from(v: Variable) -> Self {
+        Expression::VariableExpression(v)
+    }
+}
+
+impl From<Binary> for Expression {
+    fn from(v: Binary) -> Self {
+        Expression::BinaryExpression(v)
+    }
+}
+
 impl IExpression for Expression {
     fn eval(&self) -> Result<Datum, Error> {
         match self {

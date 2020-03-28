@@ -31,7 +31,7 @@ impl IExpression for Binary {
 }
 
 pub fn add(args: Vec<Expression>) -> Expression {
-    Expression::BinaryExpression(Binary::new(
+    Expression::from(Binary::new(
         Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
             arithmetic::add(left, right)
         }),
@@ -40,7 +40,7 @@ pub fn add(args: Vec<Expression>) -> Expression {
 }
 
 pub fn sub(args: Vec<Expression>) -> Expression {
-    Expression::BinaryExpression(Binary::new(
+    Expression::from(Binary::new(
         Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
             arithmetic::sub(left, right)
         }),
@@ -49,7 +49,7 @@ pub fn sub(args: Vec<Expression>) -> Expression {
 }
 
 pub fn mul(args: Vec<Expression>) -> Expression {
-    Expression::BinaryExpression(Binary::new(
+    Expression::from(Binary::new(
         Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
             arithmetic::mul(left, right)
         }),
@@ -58,7 +58,7 @@ pub fn mul(args: Vec<Expression>) -> Expression {
 }
 
 pub fn div(args: Vec<Expression>) -> Expression {
-    Expression::BinaryExpression(Binary::new(
+    Expression::from(Binary::new(
         Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
             arithmetic::div(left, right)
         }),
@@ -67,7 +67,7 @@ pub fn div(args: Vec<Expression>) -> Expression {
 }
 
 pub fn gt(args: Vec<Expression>) -> Expression {
-    Expression::BinaryExpression(Binary::new(
+    Expression::from(Binary::new(
         Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
             comparator::gt(left, right)
         }),
@@ -83,8 +83,8 @@ fn test_add() {
         Test {
             name: "add-passed",
             args: vec![
-                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
-                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+                Expression::from(Constant::new(Datum::Int32(10))),
+                Expression::from(Constant::new(Datum::Int32(2))),
             ],
             expect: Datum::Int32(12),
             func: Box::new(add),
@@ -93,8 +93,8 @@ fn test_add() {
         Test {
             name: "sub-passed",
             args: vec![
-                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
-                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+                Expression::from(Constant::new(Datum::Int32(10))),
+                Expression::from(Constant::new(Datum::Int32(2))),
             ],
             expect: Datum::Int32(8),
             func: Box::new(sub),
@@ -103,8 +103,8 @@ fn test_add() {
         Test {
             name: "mul-passed",
             args: vec![
-                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
-                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+                Expression::from(Constant::new(Datum::Int32(10))),
+                Expression::from(Constant::new(Datum::Int32(2))),
             ],
             expect: Datum::Int32(20),
             func: Box::new(mul),
@@ -113,8 +113,8 @@ fn test_add() {
         Test {
             name: "div-passed",
             args: vec![
-                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
-                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+                Expression::from(Constant::new(Datum::Int32(10))),
+                Expression::from(Constant::new(Datum::Int32(2))),
             ],
             expect: Datum::Int32(5),
             func: Box::new(div),
@@ -123,8 +123,8 @@ fn test_add() {
         Test {
             name: "gt-passed",
             args: vec![
-                Expression::ConstantExpression(Constant::new(Datum::Int32(10))),
-                Expression::ConstantExpression(Constant::new(Datum::Int32(2))),
+                Expression::from(Constant::new(Datum::Int32(10))),
+                Expression::from(Constant::new(Datum::Int32(2))),
             ],
             expect: Datum::Boolean(true),
             func: Box::new(gt),
