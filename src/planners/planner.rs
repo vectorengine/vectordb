@@ -2,10 +2,7 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use crate::planners::{
-    BinaryExpressionPlanner, ConstantPlanner, MapPlanner, ScalarExpressionPlanner, SourcePlanner,
-    VariablePlanner,
-};
+use crate::planners::*;
 
 #[derive(Debug)]
 pub enum Planner {

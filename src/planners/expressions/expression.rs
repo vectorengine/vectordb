@@ -3,17 +3,16 @@
 // Code is licensed under Apache License, Version 2.0.
 
 use crate::errors::{Error, SQLError};
-use crate::expressions::{factory, ConstantExpression, Expression, VariableExpression};
-use crate::planners::Planner;
+use crate::{expressions::*, planners::*};
 
 pub fn planner_to_expression(planner: Planner) -> Result<Expression, Error> {
     match planner {
         Planner::Constant(v) => Ok(Expression::from(ConstantExpression::new(v.val))),
         Planner::Variable(v) => Ok(Expression::from(VariableExpression::new(v.val))),
         Planner::BinaryExpression(v) => {
-            let left = planner_to_expression(v.left).unwrap();
-            let right = planner_to_expression(v.right).unwrap();
-            factory::factory(v.op.as_str(), vec![left, right])
+            let left = planner_to_expression(v.left)?;
+            let right = planner_to_expression(v.right)?;
+            factory::expression_factory(v.op.as_str(), vec![left, right])
         }
         _ => Err(Error::SQL(SQLError::NotImplemented(format!(
             "{:?}",
@@ -27,7 +26,7 @@ mod tests {
     fn test_planner_to_expression() {
         use crate::datums::Datum;
         use crate::expressions::IExpression;
-        use crate::planners::{BinaryExpressionPlanner, ConstantPlanner, Planner};
+        use crate::planners::*;
 
         let c11 = Planner::from(ConstantPlanner::new(Datum::Int32(5)));
         let c12 = Planner::from(ConstantPlanner::new(Datum::Int32(3)));

@@ -5,7 +5,7 @@
 use crate::datums::Datum;
 use crate::errors::Error;
 
-use super::{BinaryExpression, ConstantExpression, VariableExpression};
+use super::*;
 
 pub trait IExpression {
     fn eval(&self) -> Result<Datum, Error>;

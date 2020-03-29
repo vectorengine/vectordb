@@ -2,7 +2,7 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use crate::datums::{arithmetic, comparator, Datum};
+use crate::datums::*;
 use crate::errors::Error;
 
 use super::*;
@@ -75,6 +75,42 @@ pub fn gt(args: Vec<Expression>) -> Expression {
     ))
 }
 
+pub fn gte(args: Vec<Expression>) -> Expression {
+    Expression::from(BinaryExpression::new(
+        Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
+            comparator::gte(left, right)
+        }),
+        args,
+    ))
+}
+
+pub fn lt(args: Vec<Expression>) -> Expression {
+    Expression::from(BinaryExpression::new(
+        Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
+            comparator::lt(left, right)
+        }),
+        args,
+    ))
+}
+
+pub fn lte(args: Vec<Expression>) -> Expression {
+    Expression::from(BinaryExpression::new(
+        Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
+            comparator::lte(left, right)
+        }),
+        args,
+    ))
+}
+
+pub fn eq(args: Vec<Expression>) -> Expression {
+    Expression::from(BinaryExpression::new(
+        Box::new(|left: &Datum, right: &Datum| -> Result<Datum, Error> {
+            comparator::eq(left, right)
+        }),
+        args,
+    ))
+}
+
 mod tests {
     #[test]
     fn test_add() {
@@ -129,6 +165,46 @@ mod tests {
                 ],
                 expect: Datum::Boolean(true),
                 func: Box::new(gt),
+                error: None,
+            },
+            Test {
+                name: "gte-passed",
+                args: vec![
+                    Expression::from(ConstantExpression::new(Datum::Int32(2))),
+                    Expression::from(ConstantExpression::new(Datum::Int32(2))),
+                ],
+                expect: Datum::Boolean(true),
+                func: Box::new(gte),
+                error: None,
+            },
+            Test {
+                name: "lt-passed",
+                args: vec![
+                    Expression::from(ConstantExpression::new(Datum::Int32(2))),
+                    Expression::from(ConstantExpression::new(Datum::Int32(10))),
+                ],
+                expect: Datum::Boolean(true),
+                func: Box::new(lt),
+                error: None,
+            },
+            Test {
+                name: "lte-passed",
+                args: vec![
+                    Expression::from(ConstantExpression::new(Datum::Int32(2))),
+                    Expression::from(ConstantExpression::new(Datum::Int32(2))),
+                ],
+                expect: Datum::Boolean(true),
+                func: Box::new(lte),
+                error: None,
+            },
+            Test {
+                name: "eq-passed",
+                args: vec![
+                    Expression::from(ConstantExpression::new(Datum::Int32(2))),
+                    Expression::from(ConstantExpression::new(Datum::Int32(2))),
+                ],
+                expect: Datum::Boolean(true),
+                func: Box::new(eq),
                 error: None,
             },
         ];

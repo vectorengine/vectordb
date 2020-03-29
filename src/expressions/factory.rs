@@ -20,7 +20,7 @@ impl Function {
     }
 }
 
-pub fn factory(op: &str, args: Vec<Expression>) -> Result<Expression, Error> {
+pub fn expression_factory(op: &str, args: Vec<Expression>) -> Result<Expression, Error> {
     match FACTORY.get(op) {
         Some(v) => Ok((v.factory)(args)),
         None => Err(Error::Expression(ExpressionError::UnsupportedOperation)),
@@ -33,21 +33,28 @@ lazy_static! {
         ("-", Function::op(Box::new(sub))),
         ("*", Function::op(Box::new(mul))),
         ("/", Function::op(Box::new(div))),
+        ("=", Function::op(Box::new(eq))),
+        (">", Function::op(Box::new(gt))),
+        (">=", Function::op(Box::new(gte))),
+        ("<", Function::op(Box::new(lt))),
+        ("<=", Function::op(Box::new(lte))),
     ]
     .into_iter()
     .collect();
 }
 
-#[test]
-fn test_factory() {
-    use super::{ConstantExpression, IExpression};
-    use crate::datums::Datum;
+mod tests {
+    #[test]
+    fn test_factory() {
+        use super::{super::*, *};
+        use crate::datums::Datum;
 
-    let l = Expression::from(ConstantExpression::new(Datum::Int32(1)));
-    let r = Expression::from(ConstantExpression::new(Datum::Int32(3)));
-    let expr = factory("+", vec![l, r]).unwrap();
-    let result = expr.eval();
+        let l = Expression::from(ConstantExpression::new(Datum::Int32(1)));
+        let r = Expression::from(ConstantExpression::new(Datum::Int32(3)));
+        let expr = expression_factory("+", vec![l, r]).unwrap();
+        let result = expr.eval();
 
-    assert_eq!(true, result.is_ok());
-    assert_eq!(Datum::Int32(4), result.unwrap());
+        assert_eq!(true, result.is_ok());
+        assert_eq!(Datum::Int32(4), result.unwrap());
+    }
 }
