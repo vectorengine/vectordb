@@ -7,7 +7,7 @@ macro_rules! arithmetic {
         pub fn $func(x: &Datum, y: &Datum) -> Result<Datum,Error> {
             match (x, y) {
                     $(($y(a), $y(b)) => Ok($y(a $op b)),)+
-                    _ => Err(Error::Datum(DatumError::UnsupportedOperation)),
+                    _ => Err(Error::from(DatumError::UnsupportedOperation)),
             }
         }
     )
@@ -18,7 +18,7 @@ macro_rules! comparator{
         pub fn $func(x: &Datum, y: &Datum) -> Result<Datum,Error> {
             match (x, y) {
                     $(($y(a), $y(b)) => Ok(Datum::Boolean(a $op b)),)+
-                    _ => Err(Error::Datum(DatumError::UnsupportedOperation)),
+                    _ => Err(Error::from(DatumError::UnsupportedOperation)),
             }
         }
     )

@@ -14,7 +14,7 @@ pub fn planner_to_expression(planner: Planner) -> Result<Expression, Error> {
             let right = planner_to_expression(v.right)?;
             factory::expression_factory(v.op.as_str(), vec![left, right])
         }
-        _ => Err(Error::SQL(SQLError::NotImplemented(format!(
+        _ => Err(Error::from(SQLError::NotImplemented(format!(
             "{:?}",
             planner,
         )))),

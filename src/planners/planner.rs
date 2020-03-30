@@ -9,17 +9,31 @@ pub enum Planner {
     Null,
     Map(MapPlanner),
 
-    Variable(VariablePlanner),
     Constant(ConstantPlanner),
+    Variable(VariablePlanner),
     Source(SourcePlanner),
+    Filter(FilterPlanner),
+    Select(SelectPlanner),
 
     BinaryExpression(Box<BinaryExpressionPlanner>),
     ScalarExpression(Box<ScalarExpressionPlanner>),
 }
 
+impl From<MapPlanner> for Planner {
+    fn from(v: MapPlanner) -> Self {
+        Planner::Map(v)
+    }
+}
+
 impl From<ConstantPlanner> for Planner {
     fn from(v: ConstantPlanner) -> Self {
         Planner::Constant(v)
+    }
+}
+
+impl From<VariablePlanner> for Planner {
+    fn from(v: VariablePlanner) -> Self {
+        Planner::Variable(v)
     }
 }
 
@@ -29,9 +43,15 @@ impl From<SourcePlanner> for Planner {
     }
 }
 
-impl From<VariablePlanner> for Planner {
-    fn from(v: VariablePlanner) -> Self {
-        Planner::Variable(v)
+impl From<FilterPlanner> for Planner {
+    fn from(v: FilterPlanner) -> Self {
+        Planner::Filter(v)
+    }
+}
+
+impl From<SelectPlanner> for Planner {
+    fn from(v: SelectPlanner) -> Self {
+        Planner::Select(v)
     }
 }
 

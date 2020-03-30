@@ -23,7 +23,7 @@ impl Function {
 pub fn expression_factory(op: &str, args: Vec<Expression>) -> Result<Expression, Error> {
     match FACTORY.get(op) {
         Some(v) => Ok((v.factory)(args)),
-        None => Err(Error::Expression(ExpressionError::UnsupportedOperation)),
+        None => Err(Error::from(ExpressionError::UnsupportedOperation)),
     }
 }
 

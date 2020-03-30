@@ -43,3 +43,21 @@ pub enum DatumError {
     #[fail(display = "Unsupported operation.")]
     UnsupportedOperation,
 }
+
+impl From<SQLError> for Error {
+    fn from(v: SQLError) -> Self {
+        Error::SQL(v)
+    }
+}
+
+impl From<ExpressionError> for Error {
+    fn from(v: ExpressionError) -> Self {
+        Error::Expression(v)
+    }
+}
+
+impl From<DatumError> for Error {
+    fn from(v: DatumError) -> Self {
+        Error::Datum(v)
+    }
+}

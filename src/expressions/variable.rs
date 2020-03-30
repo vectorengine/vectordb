@@ -22,7 +22,7 @@ impl VariableExpression {
 
 impl IExpression for VariableExpression {
     fn eval(&self) -> Result<Datum, Error> {
-        Err(Error::Expression(ExpressionError::UnsupportedOperation))
+        Err(Error::from(ExpressionError::UnsupportedOperation))
     }
 }
 

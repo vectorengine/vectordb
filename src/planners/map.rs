@@ -19,4 +19,8 @@ impl MapPlanner {
     pub fn name(&self) -> &str {
         "MapPlanner"
     }
+
+    pub fn add(&mut self, planner: Planner) {
+        self.planners.push(planner);
+    }
 }

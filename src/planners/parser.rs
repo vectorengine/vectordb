@@ -2,7 +2,9 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use sqlparser::ast::{Expr, Query, SetExpr, Statement, TableFactor, Value as ExprValue};
+use sqlparser::ast::{
+    Expr, Query, SelectItem, SetExpr, Statement, TableFactor, Value as ExprValue,
+};
 use sqlparser::dialect::GenericDialect;
 use sqlparser::parser::Parser;
 
@@ -13,18 +15,19 @@ use super::{
     BinaryExpressionPlanner, ConstantPlanner, MapPlanner, Planner, Planner::*,
     ScalarExpressionPlanner, SourcePlanner, VariablePlanner,
 };
+use crate::planners::{FilterPlanner, SelectPlanner};
 
 pub fn parser(sql: String) -> Result<Statement, Error> {
     let dialect = GenericDialect {};
 
     let mut parsed = match Parser::parse_sql(&dialect, sql) {
         Ok(v) => v,
-        Err(e) => return Err(Error::SQL(SQLError::ParserError(e))),
+        Err(e) => return Err(Error::from(SQLError::ParserError(e))),
     };
 
     let ast = match parsed.pop() {
         Some(v) => v,
-        None => return Err(Error::SQL(SQLError::UnsupportedOperation)),
+        None => return Err(Error::from(SQLError::UnsupportedOperation)),
     };
 
     Ok(ast)
@@ -32,45 +35,73 @@ pub fn parser(sql: String) -> Result<Statement, Error> {
 
 pub fn handle_statement(stmt: Statement) -> Result<Planner, Error> {
     match stmt {
-        Statement::Query(query) => handle_query(*query),
-        _ => Err(Error::SQL(SQLError::UnsupportedOperation)),
+        Statement::Query(query) => handle_select_planner(*query),
+        _ => Err(Error::from(SQLError::NotImplemented(format!(
+            "Unsupported stmt:{}",
+            stmt
+        )))),
     }
 }
 
-pub fn handle_query(query: Query) -> Result<Planner, Error> {
+pub fn handle_select_planner(query: Query) -> Result<Planner, Error> {
     let sqlparser::ast::Query { body, .. } = query;
-
-    let (mut from, selection) = match body {
-        SetExpr::Select(select) => (select.from, select.selection),
-        _ => return Err(Error::SQL(SQLError::UnsupportedOperation)),
+    let (projection, mut from, selection) = match body {
+        SetExpr::Select(select) => (select.projection, select.from, select.selection),
+        _ => {
+            return Err(Error::from(SQLError::NotImplemented(format!(
+                "Unsupported Select:{}",
+                body
+            ))))
+        }
     };
+
+    // Projection Planner.
+    let projection_planner = handle_projection_planner(projection)?;
 
     // Source Planner.
     let table = from.pop().map(|t| t.relation);
-    let source = handle_source_planner(table)?;
+    let source_planner = handle_source_planner(table)?;
 
     // Filter Planner.
-    let filter = match selection {
-        Some(ref expr) => handle_expression_planner(&expr)?,
-        None => Null,
-    };
+    let filter_planner = handle_filter_planner(selection)?;
 
+    // Select Planner.
+    let mut select_planner = SelectPlanner::default();
+    select_planner.add(projection_planner);
+    select_planner.add(source_planner);
+    select_planner.add(filter_planner);
+    Ok(Planner::from(select_planner))
+}
+
+fn handle_projection_planner(projection: Vec<SelectItem>) -> Result<Planner, Error> {
     let mut planners = MapPlanner::new();
-    planners.planners.push(source);
-    planners.planners.push(filter);
-    Ok(Map(planners))
+    for project in &projection {
+        match project {
+            SelectItem::UnnamedExpr(v) => {
+                let expr = handle_expression_planner(v)?;
+                planners.add(expr);
+            }
+            _ => {
+                return Err(Error::from(SQLError::NotImplemented(format!(
+                    "Unsupported projection:{}",
+                    project
+                ))))
+            }
+        }
+    }
+    Ok(Planner::from(planners))
 }
 
 pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, Error> {
     let object_name = match relation {
         Some(TableFactor::Table { name, .. }) => name,
         Some(e) => {
-            return Err(Error::SQL(SQLError::NotImplemented(format!(
+            return Err(Error::from(SQLError::NotImplemented(format!(
                 "Table: {}",
                 e
             ))))
         }
-        None => return Err(Error::SQL(SQLError::UnsupportedOperation)),
+        None => return Err(Error::from(SQLError::UnsupportedOperation)),
     };
 
     let (schema, table) = match object_name.0.len() {
@@ -80,7 +111,7 @@ pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, E
             object_name.0.get(1).unwrap().as_str(),
         ),
         _ => {
-            return Err(Error::SQL(SQLError::NotImplemented(format!(
+            return Err(Error::from(SQLError::NotImplemented(format!(
                 "{:?}",
                 object_name.0
             ))))
@@ -91,6 +122,17 @@ pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, E
         schema.to_string(),
         table.to_string(),
     )))
+}
+
+fn handle_filter_planner(selection: Option<Expr>) -> Result<Planner, Error> {
+    // Filter Planner.
+    let mut planners = MapPlanner::new();
+    let exprs = match selection {
+        Some(ref expr) => handle_expression_planner(&expr)?,
+        None => Null,
+    };
+    planners.add(exprs);
+    Ok(Planner::from(FilterPlanner::new(planners)))
 }
 
 pub fn handle_expression_planner(expr: &Expr) -> Result<Planner, Error> {
@@ -132,7 +174,7 @@ pub fn handle_expression_planner(expr: &Expr) -> Result<Planner, Error> {
         }
 
         // Unsupported.
-        _ => Err(Error::SQL(SQLError::NotImplemented(format!("{:?}", expr)))),
+        _ => Err(Error::from(SQLError::NotImplemented(format!("{:?}", expr)))),
     }
 }
 
@@ -148,7 +190,7 @@ pub fn expression_value_to_datum(val: &ExprValue) -> Result<Datum, Error> {
         ExprValue::SingleQuotedString(ref v) => Ok(Datum::String(v.to_string())),
 
         // Unsupported.
-        _ => Err(Error::SQL(SQLError::NotImplemented(format!("{:?}", val)))),
+        _ => Err(Error::from(SQLError::NotImplemented(format!("{:?}", val)))),
     }
 }
 
@@ -161,10 +203,10 @@ fn test_parser() {
     }
 
     {
-        let sql = "SELECT a, b FROM table_1 WHERE a > b AND b < 100 OR myfunc(a+1) = 1";
+        let sql = "SELECT a, b, 1 FROM table_1 WHERE a > b AND b < 100 OR myfunc(a+1) = 1";
         let stmt = parser(sql.to_string());
         assert_eq!(true, stmt.is_ok());
-        print!("{:#?}", stmt);
+        //print!("{:#?}", stmt);
         let planner = handle_statement(stmt.unwrap());
         print!("{:#?}", planner);
         assert_eq!(true, planner.is_ok());
