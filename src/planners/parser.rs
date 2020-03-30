@@ -126,13 +126,13 @@ pub fn handle_source_planner(relation: Option<TableFactor>) -> Result<Planner, E
 
 fn handle_filter_planner(selection: Option<Expr>) -> Result<Planner, Error> {
     // Filter Planner.
-    let mut planners = MapPlanner::new();
+    let mut filter = FilterPlanner::default();
     let exprs = match selection {
         Some(ref expr) => handle_expression_planner(&expr)?,
         None => Null,
     };
-    planners.add(exprs);
-    Ok(Planner::from(FilterPlanner::new(planners)))
+    filter.add(exprs);
+    Ok(Planner::from(filter))
 }
 
 pub fn handle_expression_planner(expr: &Expr) -> Result<Planner, Error> {

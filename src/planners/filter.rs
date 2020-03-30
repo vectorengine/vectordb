@@ -10,11 +10,17 @@ pub struct FilterPlanner {
 }
 
 impl FilterPlanner {
-    pub fn new(planners: MapPlanner) -> Self {
-        FilterPlanner { planners }
+    pub fn default() -> Self {
+        FilterPlanner {
+            planners: MapPlanner::new(),
+        }
     }
 
     pub fn name(&self) -> &str {
         "FilterPlanner"
+    }
+
+    pub fn add(&mut self, planner: Planner) {
+        self.planners.add(planner);
     }
 }
