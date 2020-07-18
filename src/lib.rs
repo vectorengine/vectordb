@@ -5,4 +5,5 @@
 pub mod datums;
 pub mod errors;
 pub mod expressions;
+pub mod parsers;
 pub mod planners;
