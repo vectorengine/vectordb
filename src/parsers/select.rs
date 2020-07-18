@@ -2,7 +2,8 @@
 //
 // Code is licensed under Apache License, Version 2.0.
 
-use crate::errors::Error;
+use crate::errors::{Error, SQLError};
+use crate::parsers::keyword::ParserKeyword;
 use crate::parsers::{Tokens, IAST};
 
 #[derive(Debug)]
@@ -20,6 +21,13 @@ impl Select {
 
 impl IAST for Select {
     fn parse(&self, _tokens: Tokens) -> Option<Error> {
+        let _s_select = ParserKeyword::default("SELECT".to_string());
+        if !_s_select.ignore(_tokens) {
+            return Some(Error::from(SQLError::NotImplemented(format!(
+                "Unsupported select:{:?}",
+                "",
+            ))));
+        }
         None
     }
 }

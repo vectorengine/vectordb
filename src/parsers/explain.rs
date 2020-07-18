@@ -22,6 +22,6 @@ impl Explain {
 
 impl IAST for Explain {
     fn parse(&self, _tokens: Tokens) -> Option<Error> {
-        None
+        self.select.parse(_tokens)
     }
 }

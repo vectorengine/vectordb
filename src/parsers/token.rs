@@ -52,11 +52,16 @@ impl Tokens {
             pos: 0,
         }
     }
+
+    pub fn peek_token(&self) -> Option<&Token> {
+        Some(&self.tokens[self.pos])
+    }
 }
 
 impl Iterator for Tokens {
     type Item = Token;
     fn next(&mut self) -> Option<Token> {
+        self.pos += 1;
         self.tokens.pop()
     }
 }
