@@ -102,10 +102,7 @@ impl Lexer {
     }
 
     pub fn is_whitespace_ascii(c: u8) -> bool {
-        match c as char {
-            ' ' => true,
-            _ => false,
-        }
+        matches!(c as char, ' ')
     }
 
     pub fn is_alpha_ascii(c: u8) -> bool {
