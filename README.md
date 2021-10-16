@@ -1,4 +1,4 @@
-NOTICE: This project have moved to [fuse-query](https://github.com/datafusedev/fuse-query)
+**NOTICE: This project have moved to** [**Databend**](https://github.com/datafuselabs/databend)
 
 [![Github Actions Status](https://github.com/vectorengine/vectordb/workflows/VectorDB%20Lint/badge.svg)](https://github.com/vectorengine/vectordb/actions?query=workflow%3A%22VectorDB+Lint%22)
 [![Github Actions Status](https://github.com/vectorengine/vectordb/workflows/VectorDB%20Test/badge.svg)](https://github.com/vectorengine/vectordb/actions?query=workflow%3A%22VectorDB+Test%22)
